@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>SPK ARAS - Versi Ringkas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f6f8fa;
+        }
+
+        table {
+            border-collapse: collapse;
+            margin-top: 10px;
+            width: 100%;
+            max-width: 900px;
+        }
+
+        th,
+        td {
+            border: 1px solid #bbb;
+            padding: 6px 10px;
+            text-align: center;
+        }
+
+        th {
+            background: #3f8cff;
+            color: #fff;
+        }
+
+        input, select {
+            padding: 4px 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box; /* Added for consistent sizing */
+        }
+
+        input[type="text"], input[type="number"] {
+            text-align: right;
+        }
+
+        input {
+            width: 70px; /* Default width */
+        }
+
+        .box {
+            background: #fff;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 6px 12px;
+            background: #3f8cff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background: #2563eb;
+        }
+
+        .muted {
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        .highlight {
+            background: #d1eaff;
+            font-weight: bold;
+        }
+
+        .row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .toast-wrap {
+            position: fixed;
+            top: 22px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .toast {
+            pointer-events: auto;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+            min-width: 260px;
+            max-width: 520px;
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: 1px solid;
+            background: #ffffff;
+            color: #0f172a;
+            border-color: #dbeafe; /* Default border color */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            animation: toast-in .25s ease, toast-out .25s ease 4.6s forwards;
+        }
+
+        .toast-success {
+            border-color: #86efac;
+            background: #ecfdf5;
+            color: #065f46;
+        }
+
+        .toast-error {
+            border-color: #fca5a5;
+            background: #fef2f2;
+            color: #7f1d1d;
+        }
+
+        .toast .close {
+            margin-left: 10px;
+            background: transparent;
+            border: 0;
+            cursor: pointer;
+            color: inherit;
+            font-size: 18px;
+            opacity: .8;
+        }
+
+        .toast .close:hover {
+            opacity: 1;
+        }
+
+        @keyframes toast-in {
+            from {
+                opacity: 0;
+                transform: translateY(-6px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes toast-out {
+             0% { /* Ensure it starts visible */
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-6px);
+            }
+        }
+        /* --- Top bar --- */
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f1f5f9;
+            border-radius: 14px;
+            padding: 12px 16px;
+            margin: 0 0 16px 0;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, .04) inset;
+        }
+
+        .topbar .title {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .profile-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 999px;
+            padding: 6px 12px;
+            text-decoration: none;
+            color: #0f172a;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, .06);
+            transition: box-shadow .15s ease, transform .15s ease;
+            max-width: 260px;
+        }
+
+        .profile-chip:hover {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, .08);
+            transform: translateY(-1px);
+        }
+
+        .profile-chip .avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 999px;
+            display: grid;
+            place-items: center;
+            background: #3f8cff;
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .profile-chip .name {
+            max-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="toast-wrap" id="toastWrap">
+        <% const s = (typeof messages !== 'undefined' && messages.success) ? messages.success : []; %>
+        <% const e = (typeof messages !== 'undefined' && messages.error) ? messages.error : []; %>
+        <% if (s.length) { %>
+            <div class="toast toast-success">
+                ✅ <span><%= s[0] %></span>
+                <button class="close" onclick="this.parentElement.remove()">×</button>
+            </div>
+        <% } %>
+        <% if (e.length) { %>
+            <div class="toast toast-error">
+                ⚠️ <span><%= e[0] %></span>
+                <button class="close" onclick="this.parentElement.remove()">×</button>
+            </div>
+        <% } %>
+    </div>
+
+    <div class="topbar">
+        <h2 class="title">🧮 Sistem Pendukung Keputusan - ARAS</h2>
+        <a href="/profile" class="profile-chip">
+            <span class="avatar"><%= (user && user.nama) ? user.nama[0].toUpperCase() : 'U' %></span>
+            <span class="name"><%= (user && user.nama) ? user.nama : 'User' %></span>
+        </a>
+    </div>
+
+    <div class="box">
+        <h3>Judul Studi Kasus</h3>
+        <input type="text" id="inputJudul" placeholder="contoh: Pemilihan Supplier Bahan Baku" style="width: 300px; text-align: left;">
+        <div class="row" style="margin-top:10px">
+            <button class="btn" id="btnLoadDB" title="Muat dari database">Muat dari DB</button>
+            <button class="btn" id="btnSaveQuick" title="Simpan metadata ringan">Simpan Cepat</button>
+            <button class="btn" id="btnSaveFull" title="Simpan lengkap dengan snapshot">Simpan Lengkap</button>
+            <span class="muted">💾 Simpan Cepat = hanya riwayat · Simpan Lengkap = + snapshot lengkap.</span>
+        </div>
+    </div>
+
+    <div class="box">
+        <h3>Kriteria</h3>
+        <table id="tblKriteria">
+            <thead>
+                <tr>
+                    <th>Kode</th>
+                    <th>Nama</th>
+                    <th>Tipe</th>
+                    <th>Bobot</th>
+                </tr>
+            </thead>
+            <tbody id="bodyKriteria"></tbody>
+        </table>
+        <button class="btn" onclick="addKriteria()">+ Tambah Kriteria</button>
+    </div>
+
+    <div class="box">
+        <h3>Alternatif</h3>
+        <table id="tblAlternatif">
+            <thead id="headAlternatif"></thead>
+            <tbody id="bodyAlternatif"></tbody>
+        </table>
+        <button class="btn" onclick="addAlternatif()">+ Tambah Alternatif</button>
+    </div>
+
+    <div class="row">
+        <button class="btn" onclick="hitungARAS()">Hitung ARAS</button>
+        <span class="muted">Langkah: cost→benefit (x′=1/x untuk cost) → normalisasi r=x′/Σx′ → S=Σ(w·r) → ranking.</span>
+    </div>
+
+    <div id="hasil" class="box"></div>
+
+    <script>
+        // --- toast auto dismiss
+        document.querySelectorAll('.toast').forEach(t => {
+            let outTimer = setTimeout(() => t.remove(), 4800); // Increased duration slightly
+            t.addEventListener('mouseenter', () => {
+                t.style.animationPlayState = 'paused';
+                clearTimeout(outTimer);
+            });
+            t.addEventListener('mouseleave', () => {
+                t.style.animationPlayState = 'running';
+                outTimer = setTimeout(() => t.remove(), 1200);
+            });
+        });
+
+        /* =========================
+           STATE & UTIL
+         ========================= */
+        const state = {
+            kriteria: [{
+                kode: 'C1',
+                nama: 'Harga',
+                tipe: 'cost',
+                bobot: 0.3
+            }, {
+                kode: 'C2',
+                nama: 'Kualitas',
+                tipe: 'benefit',
+                bobot: 0.4
+            }, {
+                kode: 'C3',
+                nama: 'Ketepatan',
+                tipe: 'benefit',
+                bobot: 0.2
+            }, {
+                kode: 'C4',
+                nama: 'Layanan',
+                tipe: 'benefit',
+                bobot: 0.1
+            }, ],
+            alternatif: [{
+                nama: 'Supplier A',
+                nilai: [50000, 85, 90, 80]
+            }, {
+                nama: 'Supplier B',
+                nilai: [45000, 80, 85, 85]
+            }, {
+                nama: 'Supplier C',
+                nilai: [52000, 90, 88, 85]
+            }, {
+                nama: 'Supplier D',
+                nilai: [48000, 88, 92, 82]
+            }, ],
+        };
+
+        const num = v => +v || 0;
+        const round = (v, d = 9) => +Number(v).toFixed(d);
+
+        /* =========================
+           RENDER FORM
+         ========================= */
+        function render() {
+            bodyKriteria.innerHTML = state.kriteria.map((k, i) => `
+      <tr>
+        <td><input value="${k.kode}"  onchange="state.kriteria[${i}].kode=this.value" style="width: 60px;"></td>
+        <td><input value="${k.nama}"  onchange="state.kriteria[${i}].nama=this.value" style="width: 150px; text-align: left;"></td>
+        <td>
+          <select onchange="state.kriteria[${i}].tipe=this.value">
+            <option value="benefit" ${k.tipe==='benefit'?'selected':''}>Benefit</option>
+            <option value="cost"    ${k.tipe==='cost'?'selected':''}>Cost</option>
+          </select>
+        </td>
+        <td>
+          <input type="number" step="any" value="${k.bobot}"
+                 onchange="state.kriteria[${i}].bobot=num(this.value)" style="width: 70px;">
+        </td>
+      </tr>
+    `).join('');
+
+            headAlternatif.innerHTML =
+                '<tr><th>Alternatif</th>' +
+                state.kriteria.map(k => `<th>${k.kode}</th>`).join('') +
+                '</tr>';
+
+            bodyAlternatif.innerHTML = state.alternatif.map((a, i) => `
+      <tr>
+        <td><input value="${a.nama}" onchange="state.alternatif[${i}].nama=this.value" style="width: 150px; text-align: left;"></td>
+        ${state.kriteria.map((_, j) =>
+          `<td><input type="number" value="${a.nilai[j] ?? 0}"
+                 onchange="state.alternatif[${i}].nilai[${j}]=num(this.value)" style="width: 80px;"></td>`
+        ).join('')}
+      </tr>
+    `).join('');
+        }
+
+        function addKriteria() {
+            state.kriteria.push({
+                kode: 'C' + (state.kriteria.length + 1),
+                nama: 'Kriteria ' + (state.kriteria.length + 1),
+                tipe: 'benefit',
+                bobot: 0
+            });
+            state.alternatif.forEach(a => a.nilai.push(0));
+            render();
+        }
+
+        function addAlternatif() {
+            state.alternatif.push({
+                nama: 'Alternatif ' + (state.alternatif.length + 1),
+                nilai: Array(state.kriteria.length).fill(0)
+            });
+            render();
+        }
+
+        /* =========================
+           ARAS core
+         ========================= */
+        function normalizeBobot() {
+            const t = state.kriteria.reduce((a, b) => a + num(b.bobot), 0);
+            if (t > 0) state.kriteria.forEach(k => k.bobot = num(k.bobot) / t);
+        }
+
+        function compute() {
+            // Cek jika state kosong
+            if (state.kriteria.length === 0 || state.alternatif.length === 0) {
+                return { x: [], sumCol: [], r: [], s: [], ranked: [] };
+            }
+
+            normalizeBobot();
+            const m = state.alternatif.length, k = state.kriteria.length;
+
+            const x = Array.from({ length: m }, () => Array(k).fill(0));
+            for (let i = 0; i < m; i++) for (let j = 0; j < k; j++) {
+                const val = num(state.alternatif[i].nilai[j]);
+                x[i][j] = (state.kriteria[j].tipe === 'cost') ? (val ? 1/val : 0) : val;
+            }
+
+            const sumCol = Array(k).fill(0);
+            for (let j = 0; j < k; j++) for (let i = 0; i < m; i++) sumCol[j] += x[i][j];
+
+            const r = Array.from({ length: m }, () => Array(k).fill(0));
+            for (let i = 0; i < m; i++) for (let j = 0; j < k; j++) r[i][j] = sumCol[j] ? x[i][j]/sumCol[j] : 0;
+
+            const s = r.map(v => v.reduce((a, c, j) => a + c * state.kriteria[j].bobot, 0));
+
+            const ranked = s
+                .map((v, i) => ({ nama: state.alternatif[i].nama, skor: v }))
+                .sort((a, b) => b.skor - a.skor)
+                .map((v, i) => ({ ...v, rank: i + 1 }));
+
+            return { x, sumCol, r, s, ranked };
+        }
+
+        function tbl(head, rows, clsFn) { // Renamed cls to clsFn for clarity
+            let h = '<table><thead><tr>' + head.map(c => `<th>${c}</th>`).join('') + '</tr></thead><tbody>';
+            rows.forEach(r => h += '<tr class="' + (clsFn ? clsFn(r) : '') + '">' + r.map(v => `<td>${v}</td>`).join('') + '</tr>');
+            return h + '</tbody></table>';
+        }
+
+        function hitungARAS() {
+            if (state.kriteria.length === 0 || state.alternatif.length === 0) {
+                hasil.innerHTML = '<p style="color:red;">Data Kriteria atau Alternatif tidak boleh kosong.</p>';
+                return;
+            }
+            const { x, sumCol, r, s, ranked } = compute();
+            if (ranked.length === 0) {
+                hasil.innerHTML = '<p style="color:red;">Gagal menghitung. Periksa kembali data Anda.</p>';
+                return;
+            }
+            let h = '<h3>⿡ Konversi Cost→Benefit</h3>' + tbl(['Alternatif', ...state.kriteria.map(k => k.kode)],
+                        state.alternatif.map((a, i) => [a.nama, ...x[i].map(v => round(v))]));
+            h += '<h3>⿢ Σx\'</h3>' + tbl(['Kriteria', ...state.kriteria.map(k => k.kode)],
+                        [['Σx\'', ...sumCol.map(v => round(v))]]);
+            h += '<h3>⿣ Normalisasi r_ij</h3>' + tbl(['Alternatif', ...state.kriteria.map(k => k.kode)],
+                        state.alternatif.map((a, i) => [a.nama, ...r[i].map(v => round(v))]));
+            h += '<h3>⿤ Skor Sᵢ</h3>' + tbl(['Alternatif', 'Sᵢ'],
+                        state.alternatif.map((a, i) => [a.nama, round(s[i])]));
+            h += '<h3>⿥ Ranking</h3>' + tbl(['Rank', 'Alternatif', 'Skor'],
+                        ranked.map(o => [o.rank, o.nama, round(o.skor)]), o => o.rank === 1 ? 'highlight' : '');
+            hasil.innerHTML = h;
+        }
+
+        /* =========================
+           API integration
+         ========================= */
+        document.getElementById('btnLoadDB').addEventListener('click', async () => {
+            try {
+                const [kRes, aRes, nRes] = await Promise.all([
+                    fetch('/api/kriteria'), fetch('/api/alternatif'), fetch('/api/nilai')
+                ]);
+                if (!kRes.ok || !aRes.ok || !nRes.ok) {
+                    throw new Error('Gagal mengambil data dari server.');
+                }
+                const kriteria   = await kRes.json();
+                const alternatif = await aRes.json();
+                const nilai      = await nRes.json();
+
+                // set state dari DB
+                state.kriteria = kriteria.map(k => ({
+                    kode: k.kode, nama: k.nama, tipe: k.tipe, bobot: Number(k.bobot)
+                }));
+
+                const idxByAltId = new Map(alternatif.map((a, i) => [a.id, i]));
+                state.alternatif = alternatif.map(a => ({
+                    nama: a.nama, nilai: Array(state.kriteria.length).fill(0)
+                }));
+
+                const idxByKriId = new Map(kriteria.map((k, j) => [k.id, j]));
+                for (const n of nilai) {
+                    const ai = idxByAltId.get(n.id_alternatif);
+                    const kj = idxByKriId.get(n.id_kriteria);
+                    if (ai != null && kj != null) {
+                        state.alternatif[ai].nilai[kj] = Number(n.nilai);
+                    }
+                } // <-- Correct closing brace for 'for'
+
+                render();
+                alert('✅ Data dimuat dari database.');
+            } catch (err) { // <-- Correct closing brace for 'try' and opening for 'catch'
+                console.error(err);
+                alert('❌ Gagal memuat dari DB: ' + err.message);
+            }
+        });
+
+        // --- helper simpan (quick=ringan, full=lengkap+snapshot)
+        async function simpanKeServer(mode) {
+            const title = document.getElementById('inputJudul')?.value || null;
+            const payload = (mode === 'full')
+                ? { snapshot: { kriteria: state.kriteria, alternatif: state.alternatif } }
+                : null;
+
+            const resp = await fetch('/api/compute', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    save: true,
+                    title,
+                    history_mode: mode,  // 'light' | 'full'
+                    payload              // hanya dikirim ketika full
+                })
+            });
+
+            const data = await resp.json();
+            if (!resp.ok || !data.ok) throw new Error(data.error || `HTTP ${resp.status}`);
+
+            if (data.saved) {
+                if (data.history_id) {
+                    alert(`✅ Disimpan. ID riwayat: ${data.history_id}`);
+                } else {
+                    alert('✅ Disimpan ke tabel hasil (tanpa riwayat).'); // Fallback
+                }
+            } else {
+                alert('✅ Perhitungan berhasil (tanpa menyimpan).'); // Fallback
+            }
+        }
+
+        // --- FUNGSI BARU UNTUK VALIDASI ---
+        async function validasiDanSimpan(mode) {
+            const title = document.getElementById('inputJudul')?.value || '';
+
+            // 1. Validasi Judul
+            if (!title.trim()) {
+                alert('⚠️ Judul Studi Kasus wajib diisi sebelum menyimpan.');
+                document.getElementById('inputJudul').focus();
+                return; // Stop
+            }
+
+            // 2. Validasi Kriteria (minimal ada 1)
+            if (!state.kriteria || state.kriteria.length === 0) {
+                alert('⚠️ Kriteria wajib diisi sebelum menyimpan. (Minimal 1 kriteria)');
+                return; // Stop
+            }
+
+            // 3. Validasi Alternatif (minimal ada 1)
+            if (!state.alternatif || state.alternatif.length === 0) {
+                alert('⚠️ Alternatif wajib diisi sebelum menyimpan. (Minimal 1 alternatif)');
+                return; // Stop
+            }
+
+            // --- Jika semua valid, lanjutkan simpan ---
+            try {
+                // Panggil fungsi simpan yang sudah ada
+                await simpanKeServer(mode);
+            } catch (err) {
+                console.error(err);
+                alert(`❌ Gagal menyimpan (${mode}): ` + (err.message || err));
+            }
+        }
+
+        // tombol “Simpan Cepat” (ringan)
+        document.getElementById('btnSaveQuick').addEventListener('click', () => {
+            // Panggil fungsi validasi baru
+            validasiDanSimpan('light');
+        });
+
+        // tombol “Simpan Lengkap” (dengan snapshot)
+        document.getElementById('btnSaveFull').addEventListener('click', () => {
+            // Panggil fungsi validasi baru
+            validasiDanSimpan('full');
+        });
+
+        // --- UTIL: muat snapshot riwayat ke form
+        function applySnapshot(snapshot) {
+            if (!snapshot || !Array.isArray(snapshot.kriteria) || !Array.isArray(snapshot.alternatif)) {
+                alert('⚠️ Snapshot tidak valid.');
+                return;
+            }
+            const toNum = v => +v || 0;
+
+            state.kriteria = snapshot.kriteria.map(k => ({
+                kode: String(k.kode || ''),
+                nama: String(k.nama || ''),
+                tipe: (k.tipe === 'cost' ? 'cost' : 'benefit'),
+                bobot: toNum(k.bobot)
+            }));
+
+            state.alternatif = snapshot.alternatif.map(a => ({
+                nama: String(a.nama || ''),
+                nilai: Array.isArray(a.nilai) ? a.nilai.map(toNum) : []
+            })); // <-- Correct closing braces
+
+            render();
+            alert('✅ Data snapshot riwayat dimuat.');
+        } // <-- Correct closing brace for applySnapshot
+
+        async function loadHistoryById(id) {
+            try {
+                // endpoint baca history -> kembalikan payload JSON tersimpan
+                // Pastikan endpoint ini benar, '/profile/api/history/' atau '/api/history/'
+                const resp = await fetch('/api/history/' + encodeURIComponent(id));
+                const data = await resp.json();
+                if (!data.ok) throw new Error(data.error || 'Gagal memuat history');
+
+                // Data payload ada di data.data.payload (sesuai kode EJS Anda)
+                // Dan data title ada di data.data.title
+                if (!data.data || !data.data.payload || !data.data.payload.snapshot) {
+                    throw new Error('Snapshot riwayat tidak ditemukan atau kosong.');
+                }
+
+                // Muat judul dari data riwayat
+                if (data.data.title && document.getElementById('inputJudul')) {
+                    document.getElementById('inputJudul').value = data.data.title;
+                }
+
+                applySnapshot(data.data.payload.snapshot);
+            } catch (err) {
+                console.error(err);
+                alert('❌ ' + (err.message || 'Gagal memuat history.'));
+            }
+        }
+
+        // auto-load bila URL punya ?history=ID
+        (function () {
+            const p = new URLSearchParams(window.location.search);
+            const hid = p.get('history');
+            if (hid) {
+                console.log('Memuat riwayat ID:', hid);
+                loadHistoryById(hid);
+            }
+        })();
+
+        // render awal
+        render();
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,17 @@
+{
+  "editor.formatOnSave": false,
+  "editor.defaultFormatter": null,
+  "[ejs]": {
+    "editor.formatOnSave": false,
+    "editor.defaultFormatter": null
+  },
+  "[html]": {
+    "editor.formatOnSave": false
+  },
+  "[css]": {
+    "editor.formatOnSave": false
+  },
+  "[javascript]": {
+    "editor.formatOnSave": false
+  }
+}
