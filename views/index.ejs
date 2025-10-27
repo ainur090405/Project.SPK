@@ -342,6 +342,8 @@
                 nama: 'Supplier D',
                 nilai: [48000, 88, 92, 82]
             }, ],
+            // --- PERUBAHAN: Tambahkan state untuk mode edit ---
+            currentHistoryId: null // Menyimpan ID riwayat yang sedang diedit
         };
 
         const num = v => +v || 0;
@@ -520,23 +522,33 @@
                 ? { snapshot: { kriteria: state.kriteria, alternatif: state.alternatif } }
                 : null;
 
+            // --- PERUBAHAN: Sertakan history_id_to_update jika dalam mode edit ---
+            const requestBody = {
+                save: true,
+                title,
+                history_mode: mode,  // 'light' | 'full'
+                payload              // hanya dikirim ketika full
+            };
+
+            // Jika sedang dalam mode edit, tambahkan history_id_to_update
+            if (state.currentHistoryId) {
+                requestBody.history_id_to_update = state.currentHistoryId;
+            }
+
             const resp = await fetch('/api/compute', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    save: true,
-                    title,
-                    history_mode: mode,  // 'light' | 'full'
-                    payload              // hanya dikirim ketika full
-                })
+                body: JSON.stringify(requestBody)
             });
 
             const data = await resp.json();
             if (!resp.ok || !data.ok) throw new Error(data.error || `HTTP ${resp.status}`);
 
             if (data.saved) {
+                // --- PERUBAHAN: Update state.currentHistoryId jika ada ID baru ---
                 if (data.history_id) {
-                    alert(`✅ Disimpan. ID riwayat: ${data.history_id}`);
+                    state.currentHistoryId = data.history_id; // Simpan ID untuk operasi selanjutnya
+                    alert(`✅ ${state.currentHistoryId ? 'Diperbarui' : 'Disimpan'}. ID riwayat: ${data.history_id}`);
                 } else {
                     alert('✅ Disimpan ke tabel hasil (tanpa riwayat).'); // Fallback
                 }
@@ -578,13 +590,13 @@
             }
         }
 
-        // tombol “Simpan Cepat” (ringan)
+        // tombol "Simpan Cepat" (ringan)
         document.getElementById('btnSaveQuick').addEventListener('click', () => {
             // Panggil fungsi validasi baru
             validasiDanSimpan('light');
         });
 
-        // tombol “Simpan Lengkap” (dengan snapshot)
+        // tombol "Simpan Lengkap" (dengan snapshot)
         document.getElementById('btnSaveFull').addEventListener('click', () => {
             // Panggil fungsi validasi baru
             validasiDanSimpan('full');
@@ -632,6 +644,9 @@
                 if (data.data.title && document.getElementById('inputJudul')) {
                     document.getElementById('inputJudul').value = data.data.title;
                 }
+
+                // --- PERUBAHAN: Set mode edit dengan menyimpan ID riwayat ---
+                state.currentHistoryId = parseInt(id);
 
                 applySnapshot(data.data.payload.snapshot);
             } catch (err) {

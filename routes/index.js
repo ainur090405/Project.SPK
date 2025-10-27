@@ -76,7 +76,7 @@ router.get('/api/alternatif', async (_req, res) => {
      } catch (e) {
         console.error("Error fetching alternatif:", e);
         res.status(500).json([]);
-    }
+     }
 });
 
 router.get('/api/nilai', async (_req, res) => {
@@ -99,9 +99,6 @@ router.get('/api/history/:id', async (req, res) => {
             ? req.session.user.id_user
             : null;
 
-        // =======================================================
-        // PERUBAHAN: SELECT 'judul' AS 'title'
-        // =======================================================
         const [rows] = await pool.query(
             'SELECT judul AS title, payload FROM history WHERE id_history = ? AND (id_user = ? OR id_user IS NULL)', // Ambil 'judul', beri alias 'title'
             [id, id_user]
@@ -141,9 +138,17 @@ router.get('/api/history/:id', async (req, res) => {
  */
 router.post('/api/compute', express.json(), async (req, res) => {
     const save = !!(req.body && req.body.save);
-    const judulStudiKasus = (req.body && req.body.title) || null; // Ambil judul dari request (variabel namanya bebas)
+    const judulStudiKasus = (req.body && req.body.title) || null; // Ambil judul dari request
     const mode = (req.body && req.body.history_mode) || 'light';
     const snap = (req.body && req.body.payload && req.body.payload.snapshot) || null;
+
+    // =======================================================
+    // PERUBAHAN: Tangkap ID riwayat jika ini adalah mode edit
+    // =======================================================
+    const history_id_to_update = (req.body && req.body.history_id_to_update)
+        ? Number(req.body.history_id_to_update)
+        : null;
+
 
     // ... (fungsi normNum dan normSnap tidak berubah) ...
     const normNum = v => (Number.isFinite(+v) ? +v : 0);
@@ -171,7 +176,7 @@ router.post('/api/compute', express.json(), async (req, res) => {
     try {
         let dataset;
         let result;
-        let historyId = null;
+        let historyId = null; // Akan diisi oleh ID baru (insert) atau ID lama (update)
 
         if (mode === 'full') {
             const normalized = normSnap(snap);
@@ -229,23 +234,49 @@ router.post('/api/compute', express.json(), async (req, res) => {
                         : { nama: null, skor: null };
                     const id_user = (req.session && req.session.user && req.session.user.id_user) || null;
                     const payloadString = dataset ? JSON.stringify({ snapshot: dataset, ranked: result.ranked }) : '{}';
+                    const totalAlt = dataset ? dataset.alternatif.length : 0;
 
                     // =======================================================
-                    // PERUBAHAN INSERT HISTORY (Mode Full): Hanya kolom 'judul'
+                    // PERUBAHAN: Logika UPDATE atau INSERT (Mode Full)
                     // =======================================================
-                    const [ins] = await conn.query(
-                        `INSERT INTO history (id_user, judul, best_alt, best_score, total_alt, payload)
-                         VALUES (?,?, ?,?,?,?)`, // Hapus 'title', 'judul' jadi parameter ke-2
-                        [
-                            id_user,
-                            judulStudiKasus, // Masukkan ke kolom 'judul'
-                            best.nama,
-                            best.skor,
-                            dataset ? dataset.alternatif.length : 0,
-                            payloadString
-                        ]
-                    );
-                    historyId = ins.insertId;
+                    if (history_id_to_update) {
+                        // --- INI ADALAH UPDATE ---
+                        // (Asumsi: Anda tidak ingin kolom 'updated_at', jika ada, tambahkan sendiri)
+                        await conn.query(
+                            `UPDATE history SET 
+                                judul = ?, 
+                                best_alt = ?, 
+                                best_score = ?, 
+                                total_alt = ?, 
+                                payload = ?
+                             WHERE id_history = ? AND (id_user = ? OR id_user IS NULL)`,
+                            [
+                                judulStudiKasus,
+                                best.nama,
+                                best.skor,
+                                totalAlt,
+                                payloadString,
+                                history_id_to_update, // ID riwayat yang di-update
+                                id_user               // Pastikan user-nya sama
+                            ]
+                        );
+                        historyId = history_id_to_update; // Kembalikan ID yang baru saja di-update
+                    } else {
+                        // --- INI ADALAH INSERT BARU (Logika asli Anda) ---
+                        const [ins] = await conn.query(
+                            `INSERT INTO history (id_user, judul, best_alt, best_score, total_alt, payload)
+                             VALUES (?,?, ?,?,?,?)`,
+                            [
+                                id_user,
+                                judulStudiKasus,
+                                best.nama,
+                                best.skor,
+                                totalAlt,
+                                payloadString
+                            ]
+                        );
+                        historyId = ins.insertId; // Kembalikan ID baru
+                    }
 
                     await conn.commit();
                 } catch (e) {
@@ -301,8 +332,8 @@ router.post('/api/compute', express.json(), async (req, res) => {
                     for (const r of result.ranked) {
                          const originalAlt = alternatifForCompute[r.idx];
                          if (!originalAlt) {
-                            console.warn(`Peringatan: Alternatif dengan indeks ${r.idx} tidak ditemukan saat menyimpan hasil mode light.`);
-                             continue;
+                             console.warn(`Peringatan: Alternatif dengan indeks ${r.idx} tidak ditemukan saat menyimpan hasil mode light.`);
+                              continue;
                          }
                         await conn.query(
                             'INSERT INTO hasil (id_alternatif, skor, `rank`) VALUES (?,?,?)',
@@ -320,23 +351,48 @@ router.post('/api/compute', express.json(), async (req, res) => {
                         : { nama: null, skor: null };
                     const id_user = (req.session && req.session.user && req.session.user.id_user) || null;
                     const payloadString = JSON.stringify({ snapshot, ranked: result.ranked });
-
+                    const totalAlt = alternatifForCompute.length;
+                    
                     // =======================================================
-                    // PERUBAHAN INSERT HISTORY (Mode Light): Hanya kolom 'judul'
+                    // PERUBAHAN: Logika UPDATE atau INSERT (Mode Light)
                     // =======================================================
-                    const [ins] = await conn.query(
-                        `INSERT INTO history (id_user, judul, best_alt, best_score, total_alt, payload)
-                         VALUES (?,?, ?,?,?,?)`, // Hapus 'title', 'judul' jadi parameter ke-2
-                        [
-                            id_user,
-                            judulStudiKasus, // Masukkan ke kolom 'judul'
-                            best.nama,
-                            best.skor,
-                            alternatifForCompute.length,
-                            payloadString
-                        ]
-                    );
-                    historyId = ins.insertId;
+                    if (history_id_to_update) {
+                        // --- INI ADALAH UPDATE ---
+                        await conn.query(
+                            `UPDATE history SET 
+                                judul = ?, 
+                                best_alt = ?, 
+                                best_score = ?, 
+                                total_alt = ?, 
+                                payload = ?
+                             WHERE id_history = ? AND (id_user = ? OR id_user IS NULL)`,
+                            [
+                                judulStudiKasus,
+                                best.nama,
+                                best.skor,
+                                totalAlt,
+                                payloadString,
+                                history_id_to_update, // ID riwayat yang di-update
+                                id_user               // Pastikan user-nya sama
+                            ]
+                        );
+                        historyId = history_id_to_update; // Kembalikan ID yang baru saja di-update
+                    } else {
+                        // --- INI ADALAH INSERT BARU (Logika asli Anda) ---
+                        const [ins] = await conn.query(
+                            `INSERT INTO history (id_user, judul, best_alt, best_score, total_alt, payload)
+                             VALUES (?,?, ?,?,?,?)`,
+                            [
+                                id_user,
+                                judulStudiKasus,
+                                best.nama,
+                                best.skor,
+                                totalAlt,
+                                payloadString
+                            ]
+                        );
+                        historyId = ins.insertId; // Kembalikan ID baru
+                    }
 
                     await conn.commit();
                 } catch (e) {
@@ -361,7 +417,7 @@ router.post('/api/compute', express.json(), async (req, res) => {
             steps: { W: finalW, /* ... sisanya ... */ xprime: result.xprime, sumCol: result.sumCol, rij: result.rij, skor: result.skor },
             ranked: result.ranked,
             saved: save,
-            history_id: historyId
+            history_id: historyId // Kirim ID yang relevan (baru atau lama) kembali ke frontend
         });
     } catch (e) {
         console.error("Error di route /api/compute :", e);
