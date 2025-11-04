@@ -1,8 +1,412 @@
-body {
-  padding: 50px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+/* public/stylesheets/style.css - Versi Neo-Modern Glass Dashboard */
+
+/* Font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* === Root Variables === */
+:root {
+  --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 40%, #0f172a 100%);
+  --card-bg: rgba(255, 255, 255, 0.08);
+  --card-border: rgba(255, 255, 255, 0.15);
+  --text-primary: #f9fafb;
+  --text-secondary: #94a3b8;
+  --accent: #10b981;
+  --accent-hover: #34d399;
+  --radius: 14px;
+  --blur: 18px;
+  --shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+  --transition: all 0.25s ease;
 }
 
-a {
-  color: #00B7FF;
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background: var(--bg-gradient);
+  background-attachment: fixed;
+  color: var(--text-primary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* === Topbar === */
+.topbar {
+  width: 90%;
+  max-width: 1200px;
+  margin-top: 40px;
+  padding: 18px 30px;
+  border-radius: var(--radius);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(var(--blur));
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.topbar .title {
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: #fff;
+}
+
+.profile-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.1);
+  padding: 6px 12px;
+  border-radius: 50px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  transition: var(--transition);
+}
+
+.profile-chip:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.avatar {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+}
+
+.name {
+  font-weight: 500;
+}
+
+/* === Boxes === */
+.box {
+  width: 90%;
+  max-width: 1200px;
+  margin: 30px 0;
+  padding: 30px;
+  border-radius: var(--radius);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(var(--blur));
+  transition: var(--transition);
+}
+
+.box:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+}
+
+.box h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #fff;
+  font-weight: 600;
+}
+
+/* === Form Judul Studi Kasus === */
+.box input#inputJudul {
+  display: block;
+  width: 100%;
+  max-width: 400px; /* biar tidak kepanjangan */
+  text-align: left;
+  margin-bottom: 12px;
+  margin-left: 10px; /* sedikit ke kiri */
+}
+
+.box .row {
+  justify-content: flex-start; /* tombol rata kiri */
+  margin-left: 10px; /* jarak kiri agar sejajar */
+  gap: 12px;
+}
+
+.box .muted {
+  margin-left: 10px;
+  display: block;
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+
+/* === Inputs === */
+input[type="text"],
+input[type="number"],
+select {
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  font-size: 14px;
+  transition: var(--transition);
+}
+
+input:focus,
+select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* === Buttons === */
+.btn {
+  border: none;
+  outline: none;
+  background: var(--accent);
+  color: #fff;
+  border-radius: var(--radius);
+  padding: 10px 18px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 14px;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.25);
+  transition: var(--transition);
+}
+
+.btn:hover {
+  background: var(--accent-hover);
+  box-shadow: 0 0 20px rgba(52, 211, 153, 0.35);
+  transform: translateY(-2px);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+/* === Tables === */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-top: 10px;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+}
+
+th {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--accent-hover);
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.8px;
+}
+
+tbody tr:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.highlight {
+  background: rgba(16, 185, 129, 0.25);
+  font-weight: 600;
+}
+
+/* === Toasts === */
+.toast-wrap {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 1000;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 280px;
+  max-width: 600px;
+  padding: 14px 18px;
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(10px);
+  animation: fadeIn 0.3s ease, fadeOut 0.5s ease 4.6s forwards;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.toast-success {
+  border-left: 4px solid var(--accent);
+}
+
+.toast-error {
+  border-left: 4px solid #ef4444;
+}
+
+.toast .close {
+  margin-left: auto;
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  color: #fff;
+  opacity: 0.7;
+  cursor: pointer;
+}
+
+.toast .close:hover {
+  opacity: 1;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeOut {
+  0% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-10px); }
+}
+
+/* === Muted Text === */
+.muted {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+/* === Responsive === */
+@media (max-width: 768px) {
+  .topbar, .box {
+    width: 95%;
+    padding: 20px;
+  }
+  table, th, td {
+    font-size: 13px;
+  }
+}
+
+/* === Section Hitung ARAS (Refined Neo-Glass) === */
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin: 40px auto 0;
+  max-width: 1000px;
+  flex-wrap: wrap;
+}
+
+.btn.calculate {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  padding: 12px 28px;
+  font-size: 15px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+  transition: all 0.3s ease;
+}
+
+.btn.calculate:hover {
+  background: var(--accent-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 0 25px rgba(52, 211, 153, 0.5);
+}
+
+.aras-info {
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+  max-width: 600px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(6px);
+}
+
+.aras-info strong {
+  color: var(--accent-hover);
+  font-weight: 600;
+}
+
+/* Sembunyikan box hasil sebelum ada output */
+#hasil:empty {
+  display: none;
+}
+
+/* === Animasi Muncul Hasil ARAS === */
+#hasil {
+  animation: fadeSlideIn 0.6s cubic-bezier(0.25, 1, 0.3, 1);
+}
+
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+/* Hasil tabel lebih elegan */
+#hasil table {
+  width: 100%;
+  border-collapse: collapse;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-top: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+#hasil th,
+#hasil td {
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: #e2e8f0;
+}
+
+#hasil th {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--accent-hover);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+}
+
+#hasil tr:last-child td {
+  border-bottom: none;
+}
+
+#hasil h3 {
+  color: var(--accent-hover);
+  margin-top: 24px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+#hasil .highlight {
+  background: rgba(16, 185, 129, 0.2);
+  font-weight: 700;
+  color: var(--accent);
 }
